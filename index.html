@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Online Editor</title>
+    <title>Html Online Editor</title>
     <style>
         ::selection {
             background: #d00000;
@@ -58,23 +58,24 @@
         
         .editor-panel {
             width: 50%;
+            min-width: 20%;
+            max-width: 80%;
         }
         
         .preview-panel {
             flex: 1;
+            min-width: 20%;
         }
         
         .resize-handle {
-            width: 10px;
-            background-color: #111;
+            width: 6px;
+            background-color: #222;
             cursor: col-resize;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-            flex-shrink: 0;
+            transition: background-color 0.2s;
         }
         
         .resize-handle:hover {
-            background-color: #222;
+            background-color: #444;
         }
         
         .panel-header {
@@ -146,11 +147,13 @@
             .editor-panel, .preview-panel {
                 width: 100% !important;
                 height: 50% !important;
+                min-width: unset !important;
+                max-width: unset !important;
             }
             
             .resize-handle {
                 width: 100%;
-                height: 10px;
+                height: 6px;
                 cursor: row-resize;
             }
         }
@@ -210,7 +213,7 @@
     </div>
     
     <div class="footer">
-        © 2025 Html Online Editor | Bloop Moon
+        © 2025 HTML Online Editor | Bloop Moon
     </div>
     
     <script>
@@ -236,41 +239,63 @@
                 }
             });
             
-            // Panel resizing functionality
+            // Improved resizing functionality
             const resizeHandle = document.getElementById('resize-handle');
             const editorPanel = document.querySelector('.editor-panel');
             const previewPanel = document.querySelector('.preview-panel');
-            const container = document.querySelector('.container');
-            
             let isResizing = false;
+            let lastX, lastY;
             
             resizeHandle.addEventListener('mousedown', function(e) {
                 isResizing = true;
-                document.body.style.cursor = window.innerWidth > 768 ? 'col-resize' : 'row-resize';
-                document.addEventListener('mousemove', resize);
+                lastX = e.clientX;
+                lastY = e.clientY;
+                document.body.style.userSelect = 'none';
+                document.addEventListener('mousemove', handleResize);
                 document.addEventListener('mouseup', stopResize);
             });
             
-            function resize(e) {
+            function handleResize(e) {
                 if (!isResizing) return;
                 
                 if (window.innerWidth > 768) {
                     // Horizontal resize for desktop
-                    const containerRect = container.getBoundingClientRect();
-                    const percent = (e.clientX - containerRect.left) / containerRect.width * 100;
-                    editorPanel.style.width = `calc(${Math.min(Math.max(percent, 20), 80)}% - 5px)`;
+                    const dx = e.clientX - lastX;
+                    const editorWidth = editorPanel.offsetWidth;
+                    const newWidth = editorWidth + dx;
+                    
+                    // Apply constraints
+                    const containerWidth = editorPanel.parentElement.offsetWidth;
+                    const minWidth = containerWidth * 0.2;
+                    const maxWidth = containerWidth * 0.8;
+                    
+                    if (newWidth >= minWidth && newWidth <= maxWidth) {
+                        editorPanel.style.width = `${newWidth}px`;
+                        lastX = e.clientX;
+                    }
                 } else {
                     // Vertical resize for mobile
-                    const containerRect = container.getBoundingClientRect();
-                    const percent = (e.clientY - containerRect.top) / containerRect.height * 100;
-                    editorPanel.style.height = `calc(${Math.min(Math.max(percent, 20), 80)}% - 5px)`;
+                    const dy = e.clientY - lastY;
+                    const editorHeight = editorPanel.offsetHeight;
+                    const newHeight = editorHeight + dy;
+                    
+                    // Apply constraints
+                    const containerHeight = editorPanel.parentElement.offsetHeight;
+                    const minHeight = containerHeight * 0.2;
+                    const maxHeight = containerHeight * 0.8;
+                    
+                    if (newHeight >= minHeight && newHeight <= maxHeight) {
+                        editorPanel.style.height = `${newHeight}px`;
+                        lastY = e.clientY;
+                    }
                 }
             }
             
             function stopResize() {
                 isResizing = false;
-                document.body.style.cursor = '';
-                document.removeEventListener('mousemove', resize);
+                document.body.style.userSelect = '';
+                document.removeEventListener('mousemove', handleResize);
+                document.removeEventListener('mouseup', stopResize);
             }
         });
     </script>
